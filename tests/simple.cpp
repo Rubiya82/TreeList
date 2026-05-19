@@ -77,7 +77,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				DWORD dwErr = ::GetLastError();
 				printf("ImageList_LoadImage() tree failed: %d.\n", dwErr);
 			} else{
-					printf("ImageList_LoadImage() tree succeeded, TVM_SETIMAGELIST returned %d.\n", SendMessage(hWndTL, TVM_SETIMAGELIST, TVSIL_NORMAL, (LPARAM)hImgTree));
+					printf("ImageList_LoadImage() tree succeeded, TVM_SETIMAGELIST returned %Id.\n", SendMessage(hWndTL, TVM_SETIMAGELIST, TVSIL_NORMAL, (LPARAM)hImgTree));
 					;
 			}
 			HIMAGELIST hImgHead = ImageList_LoadImage(NULL, TEXT("header.bmp"), 16, 10, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE /*LR_CREATEDIBSECTION | LR_DEFAULTSIZE | LR_SHARED | LR_LOADTRANSPARENT*/);
@@ -85,7 +85,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				DWORD dwErr = ::GetLastError();
 				printf("ImageList_LoadImage() header failed: %d.\n", dwErr);
 			} else{
-					printf("ImageList_LoadImage() header succeeded, TVM_SETIMAGELIST returned %d.\n", SendMessage(hWndTL, TVM_SETIMAGELIST, TVSIL_HEADER, (LPARAM)hImgHead));
+					printf("ImageList_LoadImage() header succeeded, TVM_SETIMAGELIST returned %Id.\n", SendMessage(hWndTL, TVM_SETIMAGELIST, TVSIL_HEADER, (LPARAM)hImgHead));
 					;
 			}
 
@@ -97,7 +97,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			col.cchTextMax = 256;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
 			LRESULT col1 = SendMessage(hWndTL, TVM_INSERTCOLUMN, (WPARAM)colIdx++, (LPARAM)&col);
-			printf("TVM_INSERTCOLUMN returned %08lx\n", col1);
+			printf("TVM_INSERTCOLUMN returned %Id\n", col1);
 
 			col.mask = TVCF_TEXT | TVCF_IMAGE | TVCF_FMT;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
@@ -105,7 +105,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			col.iImage = 0;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
 			LRESULT col2 = SendMessage(hWndTL, TVM_INSERTCOLUMN, (WPARAM)colIdx++, (LPARAM)&col);
-			printf("TVM_INSERTCOLUMN returned %08lx\n", col2);
+			printf("TVM_INSERTCOLUMN returned %Id\n", col2);
 
 			col.mask = TVCF_TEXT | TVCF_IMAGE | TVCF_FMT;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
@@ -114,7 +114,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
 			LRESULT col3 = SendMessage(hWndTL, TVM_INSERTCOLUMN, (WPARAM)colIdx++, (LPARAM)&col);
-			printf("TVM_INSERTCOLUMN returned %08lx\n", col3);
+			printf("TVM_INSERTCOLUMN returned %Id\n", col3);
 
 			col.mask = TVCF_TEXT | TVCF_IMAGE | TVCF_FMT;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
@@ -123,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
 			LRESULT col4 = SendMessage(hWndTL, TVM_INSERTCOLUMN, (WPARAM)colIdx++, (LPARAM)&col);
-			printf("TVM_INSERTCOLUMN returned %08lx\n", col4);
+			printf("TVM_INSERTCOLUMN returned %Id\n", col4);
 
 			//------------------------LINES----------------------------------------------------------------
 

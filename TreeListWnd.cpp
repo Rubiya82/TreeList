@@ -97,7 +97,8 @@
 #define 	FIRST_LINE			0xFFFFFFFE
 #define 	FROM_HEADER			0x88776655
 #define 	I_CCB				I_CHILDRENCALLBACK
-#define 	U(h)				((unsigned)(h))
+#define 	U(h)				((unsigned)(UINT_PTR)(h))
+#define 	H(h)				((HTREEITEM)(UINT_PTR)(h))
 #define 	THEMEIMGLIST		((HIMAGELIST)1)
 #define 	GetHandle(h)		((TreeListData*)GetWindowLongPtr(h,0))
 #define 	TVIF_ALL			(TVIF_CHILDREN|TVIF_HANDLE|TVIF_IMAGE|TVIF_PARAM|TVIF_SELECTEDIMAGE|TVIF_STATE|TVIF_TEXT)
@@ -538,7 +539,7 @@ static void CallbackEntry(TreeListData *pData, BaseItem *pEntry, unsigned uItem,
 
 	sInfo.item.mask				= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | uFlags;
 	sInfo.item.lParam			= pEntry->lParam;
-	sInfo.item.hItem			= (HTREEITEM)uItem;
+	sInfo.item.hItem			= H(uItem);
 	sInfo.item.state			= pEntry->uState;
 	sInfo.item.stateMask		= 0xFFFFFFFF;
 	sInfo.item.iImage			= I_IMAGECALLBACK;
@@ -627,7 +628,7 @@ static void CallbackExtra(TreeListData *pData, BaseItem *pEntry, ExtraItem *pExt
 
 	sInfo.item.mask				= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | uFlags;
 	sInfo.item.lParam			= pEntry->lParam;
-	sInfo.item.hItem			= (HTREEITEM)uItem;
+	sInfo.item.hItem			= H(uItem);
 	sInfo.item.state			= pExtra->uState;
 	sInfo.item.state		   |= (pEntry->uState & TVIS_BASEFLAGS);
 	sInfo.item.stateMask		= 0xFFFFFFFF;
@@ -1796,7 +1797,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 				sNotify.hdr.code			= TVN_ITEMTOOLTIP;
 				sNotify.action				= 0;
 				sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM;
-				sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+				sNotify.itemNew.hItem		= H(uItem);
 				sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 				sNotify.itemNew.state		= pEntry->uState;
 				sNotify.itemNew.lParam		= pEntry->lParam;
@@ -1817,7 +1818,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 				if(pData->uStyle & TVS_INFOTIP) {				// Tooltip-Daten via normalem Notify holen
 					sToolNv.hdr.code			= TVN_GETINFOTIP;
 					sToolNv.cchTextMax			= INFOTIPSIZE;
-					sToolNv.hItem				= (HTREEITEM)uItem;
+					sToolNv.hItem				= H(uItem);
 					sToolNv.lParam				= pEntry->lParam;
 					sToolNv.pszText				= cTemp;
 
@@ -1829,7 +1830,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 					LOCK(pData);
 
 					sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM;
-					sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+					sNotify.itemNew.hItem		= H(uItem);
 					sNotify.itemNew.pszText		= sToolNv.pszText;
 					sNotify.itemNew.cchTextMax	= str_len(sToolNv.pszText);
 					sNotify.itemNew.cChildren	= 0;
@@ -1926,7 +1927,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 				sNotify.action				= 0;
 				sNotify.itemNew.lParam		= pEntry->lParam;
 				sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM;
-				sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+				sNotify.itemNew.hItem		= H(uItem);
 				sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 				sNotify.itemNew.cChildren	= uCol;
 				sNotify.itemOld.mask		= 0;
@@ -2591,7 +2592,7 @@ static int TreeListToggleItem(TreeListData *pData, unsigned uItem, unsigned uAdd
 	sNotify.action				=  uAction;
 	sNotify.hdr.code			=  TVN_ITEMEXPANDING;
 	sNotify.itemNew.mask		=  TVIF_HANDLE | TVIF_PARAM | TVIF_STATE;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	=  0xFFFFFFFF;
 	sNotify.itemNew.state		=  pEntry->uState;
 	sNotify.itemNew.lParam		=  pEntry->lParam;
@@ -2664,7 +2665,7 @@ static int TreeListToggleItem(TreeListData *pData, unsigned uItem, unsigned uAdd
 	sNotify.action				=  uAction;
 	sNotify.hdr.code			=  TVN_ITEMEXPANDED;
 	sNotify.itemNew.mask		=  TVIF_HANDLE | TVIF_PARAM | TVIF_STATE;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	=  0xFFFFFFFF;
 	sNotify.itemNew.state		=  pEntry->uState;
 	sNotify.itemNew.lParam		=  pEntry->lParam;
@@ -3118,7 +3119,7 @@ static int TreeListDeleteItem(TreeListData *pData, unsigned uItem, int iMode) {
 		sNotify.hdr.code			= TVN_SELCHANGED;
 		sNotify.action				= TVC_UNKNOWN;
 		sNotify.itemOld.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-		sNotify.itemOld.hItem		= (HTREEITEM)uItem;
+		sNotify.itemOld.hItem		= H(uItem);
 		sNotify.itemOld.stateMask	= 0xFFFFFFFF;
 		sNotify.itemOld.state		= pEntry->uState&~TVIS_SELECTED;
 		sNotify.itemOld.lParam		= pEntry->lParam;
@@ -3147,7 +3148,7 @@ static int TreeListDeleteItem(TreeListData *pData, unsigned uItem, int iMode) {
 	sNotify.hdr.code			= TVN_DELETEITEM;
 	sNotify.itemNew.mask		= 0;
 	sNotify.itemOld.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE;
-	sNotify.itemOld.hItem		= (HTREEITEM)uItem;
+	sNotify.itemOld.hItem		= H(uItem);
 	sNotify.itemOld.lParam		= pEntry->lParam;
 	sNotify.itemOld.pszText		= (LPTSTR) - 1;
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
@@ -3305,7 +3306,7 @@ static int TreeListXorSelectItem(TreeListData *pData, unsigned uItem, int iMode)
 	sNotify.hdr.code			= TVN_SELCHANGING;
 	sNotify.action				= iMode;
 	sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 	sNotify.itemNew.state		= pEntry->uState;
 	sNotify.itemNew.lParam		= pEntry->lParam;
@@ -3338,7 +3339,7 @@ static int TreeListXorSelectItem(TreeListData *pData, unsigned uItem, int iMode)
 	sNotify.hdr.code			= TVN_SELCHANGED;
 	sNotify.action				= iMode;
 	sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 	sNotify.itemNew.state		= pEntry->uState;
 	sNotify.itemNew.lParam		= pEntry->lParam;
@@ -3656,7 +3657,7 @@ static int TreeListSelectItem(TreeListData *pData, unsigned uItem, unsigned uSub
 	sNotify.hdr.code			= TVN_SELCHANGING;
 	sNotify.action				= iMode;
 	sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 	sNotify.itemNew.state		= uState;
 	sNotify.itemNew.lParam		= lParam;
@@ -3664,7 +3665,7 @@ static int TreeListSelectItem(TreeListData *pData, unsigned uItem, unsigned uSub
 	sNotify.itemNew.pszText		= (LPTSTR) - 1;
 	sNotify.itemNew.cchTextMax	= -1;
 	sNotify.itemOld.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-	sNotify.itemOld.hItem		= (HTREEITEM)uOld;
+	sNotify.itemOld.hItem		= H(uOld);
 	sNotify.itemOld.stateMask	= 0xFFFFFFFF;
 	sNotify.itemOld.state		= uStOld;
 	sNotify.itemNew.lParam		= lPaOld;
@@ -3770,7 +3771,7 @@ static int TreeListSelectItem(TreeListData *pData, unsigned uItem, unsigned uSub
 	sNotify.hdr.code			= TVN_SELCHANGED;
 	sNotify.action				= iMode;
 	sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 	sNotify.itemNew.state		= uState;
 	sNotify.itemNew.lParam		= lParam;
@@ -3778,7 +3779,7 @@ static int TreeListSelectItem(TreeListData *pData, unsigned uItem, unsigned uSub
 	sNotify.itemNew.pszText		= (LPTSTR) - 1;
 	sNotify.itemNew.cchTextMax	= -1;
 	sNotify.itemOld.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM | TVIF_PARAM;
-	sNotify.itemOld.hItem		= (HTREEITEM)uOld;
+	sNotify.itemOld.hItem		= H(uOld);
 	sNotify.itemOld.stateMask	= 0xFFFFFFFF;
 	sNotify.itemOld.state		= uStOld;
 	sNotify.itemOld.lParam		= lPaOld;
@@ -3808,14 +3809,14 @@ static int TreeListSelectItem(TreeListData *pData, unsigned uItem, unsigned uSub
 	sNotify.hdr.code			= TVN_SINGLEEXPAND;
 	sNotify.action				= iMode;
 	sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 	sNotify.itemNew.state		= (pEntry) ? pEntry->uState : 0;
 	sNotify.itemNew.cChildren	= 0;
 	sNotify.itemNew.pszText		= (LPTSTR) - 1;
 	sNotify.itemNew.cchTextMax	= -1;
 	sNotify.itemOld.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE;
-	sNotify.itemOld.hItem		= (HTREEITEM)uOld;
+	sNotify.itemOld.hItem		= H(uOld);
 	sNotify.itemOld.stateMask	= 0xFFFFFFFF;
 	sNotify.itemOld.state		= (pTemp) ? pTemp->uState : 0;
 	sNotify.itemOld.cChildren	= 0;
@@ -4316,7 +4317,7 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 					pTextTemp = pEntry->pText;
 				}
 
-				iCmp = pCompare(pData->hWnd, (HTREEITEM)uNext, pTextTemp, pText, pEntry->lParam, pInsert->item.lParam);
+				iCmp = pCompare(pData->hWnd, H(uNext), pTextTemp, pText, pEntry->lParam, pInsert->item.lParam);
 				if(iCmp < 0) {
 					iCount -= (iCount + 1) / 2;
 					continue;
@@ -5578,7 +5579,7 @@ static int TreeListInsertColumn(TreeListData *pData, unsigned uCol, TV_COLUMN *p
 		ExtraItem  *pExtra;
 
 		sSet.mask		= TVIF_SUBITEM;
-		sSet.hItem		= (HTREEITEM)pData->uInsertMark;
+		sSet.hItem		= H(pData->uInsertMark);
 		sSet.cChildren	= uCol;
 
 		TreeListSetItem(pData, &sSet);
@@ -5740,7 +5741,7 @@ static unsigned TreeListHitTest(TreeListData *pData, TV_HITTESTINFO *pInfo) {
 	iXpos		+= pData->uScrollX;
 	uItem		 = pData->pItemPos  [iZpos];
 	pEntry		 = pData->pTreeItems[uItem];
-	pInfo->hItem = (HTREEITEM)uItem;
+	pInfo->hItem = H(uItem);
 
 	if(!pEntry)
 		return 0;
@@ -5924,8 +5925,8 @@ static unsigned TreeListSetInsertMark(TreeListData *pData, unsigned uItem, int i
 			uItem = U(TVI_FIRST);
 	}
 
-	sInsert.hParent		 		= (HTREEITEM)pEntry->uParent;
-	sInsert.hInsertAfter 		= (HTREEITEM)uItem;
+	sInsert.hParent		 		= H(pEntry->uParent);
+	sInsert.hInsertAfter 		= H(uItem);
 	sInsert.item.mask	 		= TVIF_SELECTEDIMAGE | TVIF_IMAGE;
 	sInsert.item.iImage			= TV_NOIMAGE;
 	sInsert.item.iSelectedImage	= TV_NOIMAGE;
@@ -5938,7 +5939,7 @@ static unsigned TreeListSetInsertMark(TreeListData *pData, unsigned uItem, int i
 	pEntry->uColorBk	= pData->uColors[TVC_INSERT];
 	pEntry->bFlags	   |= TVIX_BKCOLOR;
 	sInsert.item.mask  |= TVIF_SUBITEM;
-	sInsert.item.hItem	= (HTREEITEM)uItem;
+	sInsert.item.hItem	= H(uItem);
 
 	for(uSub = 1; uSub < pData->uColumnCount; uSub++) {
 		sInsert.item.cChildren	= uSub;
@@ -6044,7 +6045,7 @@ static COLORREF TreeListSetItemColor(TreeListData *pData, unsigned uItem, unsign
 		pExtra = pData->pExtraItems[uSub - 1][uItem];
 		if(!pExtra) {											// Extra-Eintrag erzeugen
 			sSet.mask		= TVIF_SUBITEM;
-			sSet.hItem		= (HTREEITEM)uItem;
+			sSet.hItem		= H(uItem);
 			sSet.cChildren	= uSub;
 
 			if(!TreeListSetItem(pData, &sSet))
@@ -6796,7 +6797,7 @@ static void TreeListChangeCheckbox(TreeListData *pData, UINT uItem, int iPosX = 
 			}
 		} else
 			if(pData->uSingleSel && pTemp) {				// Anderer Eintrag gewählt
-				sItem.hItem		= (HTREEITEM)pData->uSingleSel;
+				sItem.hItem		= H(pData->uSingleSel);
 				sItem.mask		= TVIF_STATE;
 				sItem.stateMask	= TVIS_STATEIMAGEMASK;
 				sItem.state		= (pData->uStyleEx & TVS_EX_BITCHECKBOX) ?	0x0000 : 0x1000;
@@ -6804,7 +6805,7 @@ static void TreeListChangeCheckbox(TreeListData *pData, UINT uItem, int iPosX = 
 				TreeListSetItem(pData, &sItem);
 
 				sNotify.itemOld.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_TEXT;
-				sNotify.itemOld.hItem		= (HTREEITEM)pData->uSingleSel;
+				sNotify.itemOld.hItem		= H(pData->uSingleSel);
 				sNotify.itemOld.stateMask	= 0xFFFFFFFF;
 				sNotify.itemOld.state		= pTemp->uState;
 				sNotify.itemOld.lParam		= pTemp->lParam;
@@ -6814,7 +6815,7 @@ static void TreeListChangeCheckbox(TreeListData *pData, UINT uItem, int iPosX = 
 			}
 	}
 
-	sItem.hItem		= (HTREEITEM)uItem;
+	sItem.hItem		= H(uItem);
 	sItem.mask		= TVIF_STATE;
 	sItem.stateMask	= TVIS_STATEIMAGEMASK;
 
@@ -6829,7 +6830,7 @@ static void TreeListChangeCheckbox(TreeListData *pData, UINT uItem, int iPosX = 
 	sNotify.hdr.code			= TVN_CBSTATECHANGED;
 	sNotify.action				= VK_DBLCLK;
 	sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_TEXT;
-	sNotify.itemNew.hItem		= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem		= H(uItem);
 	sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 	sNotify.itemNew.state		= pEntry->uState;
 	sNotify.itemNew.lParam		= pEntry->lParam;
@@ -6881,7 +6882,7 @@ static void TreeListMouseNotify(TreeListData *pData, UINT uMsg, WPARAM wParam, L
 	sNotify.action					= 0;
 	sNotify.hdr.code				= uMsg;
 	sNotify.itemNew.mask			= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBNUMBER;
-	sNotify.itemNew.hItem			= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem			= H(uItem);
 	sNotify.itemNew.pszText			= (LPTSTR) - 1;
 	sNotify.itemNew.cchTextMax		= -1;
 	sNotify.itemOld.mask			= 0;
@@ -7435,7 +7436,7 @@ End:
 
 	sNotify.action					= 0;
 	sNotify.itemNew.mask			= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBNUMBER;
-	sNotify.itemNew.hItem			= (HTREEITEM)uItem;
+	sNotify.itemNew.hItem			= H(uItem);
 	sNotify.itemNew.pszText			= (LPTSTR) - 1;
 	sNotify.itemNew.cchTextMax		= -1;
 	sNotify.itemOld.mask			= 0;
@@ -8092,7 +8093,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 			if(!pNext->uFirstChild)
 				return 1;
 
-			sSort.hParent		= (HTREEITEM)uFirst;
+			sSort.hParent		= H(uFirst);
 			sSort.lParam		= pSortData->lParam;
 			sSort.lpfnCompare	= pSortData->lpfnCompare;
 			TreeListSortItemsEx(pData, &sSort, iMode);
@@ -8115,7 +8116,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 			if(!pNext->uFirstChild)
 				return 1;
 
-			sSort.hParent		= (HTREEITEM)uFirst;
+			sSort.hParent		= H(uFirst);
 			sSort.lParam		= pSortData->lParam;
 			sSort.lpfnCompare	= pSortData->lpfnCompare;
 			TreeListSortItemsEx(pData, &sSort, iMode);
@@ -8125,7 +8126,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 
 	if(iMode) {											// Sortiere die Untereinträge
 		pNext				= pList[uFirst];
-		sSort.hParent		= (HTREEITEM)uFirst;
+		sSort.hParent		= H(uFirst);
 		sSort.lParam		= pSortData->lParam;
 		sSort.lpfnCompare	= pSortData->lpfnCompare;
 
@@ -8134,7 +8135,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 				TreeListSortItemsEx(pData, &sSort, SORT_NOUPDATE);
 			}
 
-			sSort.hParent	= (HTREEITEM)pNext->uNextItem;
+			sSort.hParent	= H(pNext->uNextItem);
 			pNext			= pList[pNext->uNextItem];
 		}
 	}
@@ -8202,7 +8203,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 		XCHANGE_MEM(iMiddle, iLower);
 
 		uItem	   = pItemList[iStart];
-		hItemTemp  = (HTREEITEM)uItem;
+		hItemTemp  = H(uItem);
 		lParamTemp = pList[uItem]->lParam;
 
 		for(;;) {
@@ -8211,7 +8212,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 				if(iLower > iLast)
 					break;
 				uItem = pItemList[iLower];
-				iCmp = pCompare(hTreeWnd, (HTREEITEM)uItem, hItemTemp, pList[uItem]->lParam, lParamTemp, lParamSort);
+				iCmp = pCompare(hTreeWnd, H(uItem), hItemTemp, pList[uItem]->lParam, lParamTemp, lParamSort);
 			} while(iCmp <= 0);
 
 			do  {
@@ -8219,7 +8220,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 				if(iUpper <= iStart)
 					break;
 				uItem = pItemList[iUpper];
-				iCmp = pCompare(hTreeWnd, (HTREEITEM)uItem, hItemTemp, pList[uItem]->lParam, lParamTemp, lParamSort);
+				iCmp = pCompare(hTreeWnd, H(uItem), hItemTemp, pList[uItem]->lParam, lParamTemp, lParamSort);
 			} while(iCmp >= 0);
 
 			if(iUpper < iLower)
@@ -8352,7 +8353,7 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 			if(!pNext->uFirstChild)
 				return 1;
 
-			sSort.hParent		= (HTREEITEM)uFirst;
+			sSort.hParent		= H(uFirst);
 			sSort.lParam		= pSortData->lParam;
 			sSort.lpfnCompare	= pSortData->lpfnCompare;
 			TreeListSortItemsCb(pData, &sSort, iMode);
@@ -8375,7 +8376,7 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 			if(!pNext->uFirstChild)
 				return 1;
 
-			sSort.hParent		= (HTREEITEM)uFirst;
+			sSort.hParent		= H(uFirst);
 			sSort.lParam		= pSortData->lParam;
 			sSort.lpfnCompare	= pSortData->lpfnCompare;
 			TreeListSortItemsCb(pData, &sSort, iMode);
@@ -8385,7 +8386,7 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 
 	if(iMode) {											// Sortiere die Untereinträge
 		pNext				= pList[uFirst];
-		sSort.hParent		= (HTREEITEM)uFirst;
+		sSort.hParent		= H(uFirst);
 		sSort.lParam		= pSortData->lParam;
 		sSort.lpfnCompare	= pSortData->lpfnCompare;
 
@@ -8394,7 +8395,7 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 				TreeListSortItemsCb(pData, &sSort, SORT_NOUPDATE);
 			}
 
-			sSort.hParent	= (HTREEITEM)pNext->uNextItem;
+			sSort.hParent	= H(pNext->uNextItem);
 			pNext			= pList[pNext->uNextItem];
 		}
 	}
@@ -8912,7 +8913,7 @@ static int TreeListEndLabelEdit(TreeListData *pData, int iMode) {
 	}
 
 	sNotify.hdr.code			= TVN_ENDLABELEDIT;
-	sNotify.item.hItem			= (HTREEITEM)uItem;
+	sNotify.item.hItem			= H(uItem);
 	sNotify.item.stateMask		= 0xFFFFFFFF;
 	sNotify.item.cChildren		= uSub;
 
@@ -8943,7 +8944,7 @@ static int TreeListEndLabelEdit(TreeListData *pData, int iMode) {
 		sNotify.hdr.code		= TVN_SETDISPINFO;
 		sNotify.item.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_TEXT | TVIF_SUBITEM;
 		sNotify.item.stateMask	= (UINT)~TVIS_BASEFLAGS;
-		sNotify.item.hItem		= (HTREEITEM)uItem;
+		sNotify.item.hItem		= H(uItem);
 		sNotify.item.cChildren	= uSub;
 
 		UNLOCK(pData);
@@ -8953,7 +8954,7 @@ static int TreeListEndLabelEdit(TreeListData *pData, int iMode) {
 		pGetT			= sNotify.item.pszText;
 		sSet.mask		= TVIF_SUBITEM | TVIF_TEXT;
 		sSet.cchTextMax	= sNotify.item.cchTextMax;
-		sSet.hItem		= (HTREEITEM)uItem;
+		sSet.hItem		= H(uItem);
 		sSet.pszText	= pGetT;
 		sSet.cChildren	= uSub;
 
@@ -9308,7 +9309,7 @@ static HWND TreeListEditLabel(TreeListData *pData, unsigned uItem, unsigned uSub
 
 	sNotify.hdr.code			= TVN_BEGINLABELEDIT;
 	sNotify.item.mask			= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_TEXT | TVIF_SUBITEM;
-	sNotify.item.hItem			= (HTREEITEM)uItem;
+	sNotify.item.hItem			= H(uItem);
 	sNotify.item.pszText		= (LPTSTR)pText;
 	sNotify.item.lParam			= lParam;
 	sNotify.item.state			= uState;
@@ -9489,7 +9490,7 @@ static int TreeListStartNotifyEdit(TreeListData *pData, unsigned uItem, unsigned
 	sNotify.hdr.code			= TVN_STARTEDIT;
 	sNotify.uAction				= (UINT)wParam;
 	sNotify.item.mask			= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM;
-	sNotify.item.hItem			= (HTREEITEM)uItem;
+	sNotify.item.hItem			= H(uItem);
 	sNotify.item.stateMask		= 0xFFFFFFFF;
 	sNotify.item.lParam			= pEntry->lParam;
 	sNotify.item.cChildren		= uSub;
@@ -9726,7 +9727,7 @@ static int TreeListStartAutoEdit(TreeListData *pData, unsigned uColumn, WPARAM w
 	if(uMode >= TVAX_STEP) {
 		sItem.mask		 = TVIF_TEXT | TVIF_SUBITEM | TVIF_TEXTPTR | ((uMode < TVAX_CHECK) ? 0 : TVIF_STATE | TVIF_PARAM);
 		sItem.stateMask	 = 0xFFFFFFFF;
-		sItem.hItem		 = (HTREEITEM)pData->uSelectedItem;
+		sItem.hItem		 = H(pData->uSelectedItem);
 		sItem.cChildren	 = uColumn;
 
 		if(!TreeListGetItem(pData, &sItem))
@@ -9856,7 +9857,7 @@ NoTextChange:
 
 		sItem.mask		&= ~TVIF_TEXTPTR;
 		sItem.stateMask	&=  TVIS_STATEIMAGEMASK;
-		sItem.hItem		 = (HTREEITEM)pData->uSelectedItem;
+		sItem.hItem		 = H(pData->uSelectedItem);
 		sItem.pszText	 =  pText;
 		sItem.cchTextMax =  256;
 		sItem.cChildren	 =  uColumn;
@@ -9914,7 +9915,7 @@ EditField:
 	if(uMode != TVAX_EDIT) {
 		iSel			 = (uMode != TVAX_CBLIST) ? -1 : 0;
 		sItem.mask		 = TVIF_TEXT | TVIF_SUBITEM | TVIF_TEXTPTR;
-		sItem.hItem		 = (HTREEITEM)pData->uSelectedItem;
+		sItem.hItem		 = H(pData->uSelectedItem);
 		sItem.cChildren	 = uColumn;
 
 		if(!TreeListGetItem(pData, &sItem))
@@ -10460,7 +10461,7 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 					sNotify.hdr.code			= TVN_BEGINDRAG;
 					sNotify.action				= (pEntry->uState & TVIS_EXPANDED) ? TVE_COLLAPSE : TVE_EXPAND;
 					sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBNUMBER;
-					sNotify.itemNew.hItem		= (HTREEITEM)pData->uDragItem;
+					sNotify.itemNew.hItem		= H(pData->uDragItem);
 					sNotify.itemNew.stateMask	= 0xFFFFFFFF;
 					sNotify.itemNew.state		= pEntry->uState;
 					sNotify.itemNew.lParam		= pEntry->lParam;

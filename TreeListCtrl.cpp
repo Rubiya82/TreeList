@@ -829,7 +829,7 @@ HTREEITEM CTreeListCtrl::InsertItem(UINT nMask, LPCTSTR pText, int nImage, int n
 
 	sInsert.hParent				= hParent;
 	sInsert.hInsertAfter		= TVI_SORTEX;
-	sInsert.item.hItem			= (HTREEITEM)pCmpProc;
+	sInsert.item.hItem			= (HTREEITEM)(UINT_PTR)pCmpProc;
 	sInsert.item.pszText		= (LPTSTR)pText;
 	sInsert.item.mask			= nMask;
 	sInsert.item.iImage			= nImage;
