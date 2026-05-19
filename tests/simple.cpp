@@ -3,12 +3,19 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
+#include <tchar.h>
+#include <cstddef>
 #include "../TreeListWnd.h"
 #include "../resource.h"
 
 HINSTANCE hInst;
 BOOL bUseDll = FALSE;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+template <std::size_t N>
+TCHAR *AsWritable(const TCHAR (&text)[N]) noexcept {
+	return const_cast<TCHAR *>(text);
+}
 
 int main(int argc, char *argv[]) {
 
@@ -55,13 +62,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			hInst = GetModuleHandle(NULL);
 			if (bUseDll){
 				hLib = LoadLibrary(TEXT("..\\PB\\TreeList.dll"));
-				printf("class registration: hInst=%08lx, hLib=%08lx\n", hInst, hLib);
+				printf("class registration: hInst=%p, hLib=%p\n", hInst, hLib);
 			}
 			else
 				TreeListRegister(hInst);
 
 			hWndTL = CreateWindow(TEXT(TVC_CLASSNAME),  TEXT("TreeList"), WS_VISIBLE | WS_CHILD | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS, 0, 0, 430, 300, hWnd, 0, hInst, NULL);
-			printf("created windows is %08lx\n", hWndTL);
+			printf("created windows is %p\n", hWndTL);
 
 			SendMessage(hWndTL, TVM_SETEXTENDEDSTYLE, 0, TVS_EX_ITEMLINES | TVS_EX_ALTERNATECOLOR | TVS_EX_FULLROWMARK);
 
@@ -84,10 +91,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 			//------------------------COLUMNS----------------------------------------------------------------
 			int colIdx = 0;
-			TV_COLUMN col;
-			memset(&col, 0, sizeof(TV_COLUMN));
+			TV_COLUMN col{};
 			col.mask = TVCF_TEXT;
-			col.pszText = TEXT("Tree (col 0)");
+			col.pszText = AsWritable(TEXT("Tree (col 0)"));
 			col.cchTextMax = 256;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
 			LRESULT col1 = SendMessage(hWndTL, TVM_INSERTCOLUMN, (WPARAM)colIdx++, (LPARAM)&col);
@@ -95,7 +101,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 			col.mask = TVCF_TEXT | TVCF_IMAGE | TVCF_FMT;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
-			col.pszText = TEXT("col 1");
+			col.pszText = AsWritable(TEXT("col 1"));
 			col.iImage = 0;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
 			LRESULT col2 = SendMessage(hWndTL, TVM_INSERTCOLUMN, (WPARAM)colIdx++, (LPARAM)&col);
@@ -103,7 +109,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 			col.mask = TVCF_TEXT | TVCF_IMAGE | TVCF_FMT;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
-			col.pszText = TEXT("col 2");
+			col.pszText = AsWritable(TEXT("col 2"));
 			col.iImage = 1;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
@@ -112,7 +118,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 			col.mask = TVCF_TEXT | TVCF_IMAGE | TVCF_FMT;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
-			col.pszText = TEXT("col 3");
+			col.pszText = AsWritable(TEXT("col 3"));
 			col.iImage = 2;
 			col.fmt = /*LVCFMT_CENTER | */ LVCFMT_BITMAP_ON_RIGHT;
 			//TreeList_InsertColumn(hWndTL, colIdx++, &col);
@@ -126,7 +132,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			item.hParent				= 0;
 			item.hInsertAfter		= TVI_SORTEX;
 			item.item.hItem			= 0;//(HTREEITEM)pCmpProc;
-			item.item.pszText		= TEXT("Item 1");
+			item.item.pszText		= AsWritable(TEXT("Item 1"));
 			item.item.mask			= TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
 			item.item.iImage		= 0;
 			item.item.iSelectedImage = 2;
@@ -134,13 +140,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			item.item.stateMask		= 0;
 			item.item.lParam			= 0;
 			inserted = (HTREEITEM)SendMessage(hWndTL, TVM_INSERTITEM, 0, (LPARAM)&item);
-			printf("inserted = %08lx\n", inserted);
+			printf("inserted = %p\n", inserted);
 
 			TVINSERTSTRUCT item2;
 			item2.hParent = inserted;
 			item2.hInsertAfter = TVI_LAST  ;
 			item2.item.hItem = 0;
-			item2.item.pszText		= TEXT("Item 2");
+			item2.item.pszText		= AsWritable(TEXT("Item 2"));
 			item2.item.mask			= TVIF_TEXT;
 			item2.item.iImage		= TV_NOIMAGE;
 			item2.item.iSelectedImage = TV_NOIMAGE;
@@ -148,7 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			item2.item.stateMask		= 0;
 			item2.item.lParam			= 0;
 			inserted2 = (HTREEITEM)SendMessage(hWndTL, TVM_INSERTITEM, 0, (LPARAM)&item2);
-			printf("inserted = %08lx\n", inserted2);
+			printf("inserted = %p\n", inserted2);
 			if(inserted2) {
 				SendMessage(hWndTL, TVM_EXPAND, TVE_EXPAND, (LPARAM)inserted);
 				TV_ITEM itm;
@@ -156,7 +162,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				itm.hItem			= inserted2;
 				itm.state			= 0;
 				itm.stateMask		= 0;
-				itm.pszText			= TEXT("blah blah");
+				itm.pszText			= AsWritable(TEXT("blah blah"));
 				itm.cchTextMax		= 256;
 				itm.iImage			= 0;
 				itm.iSelectedImage	= 0;
@@ -165,7 +171,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				SendMessage(hWndTL, TVM_SETITEM, 0, (LPARAM)&itm);
 				
 				itm.mask			= TVIF_SUBITEM | TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-				itm.pszText			= TEXT("bli bli");
+				itm.pszText			= AsWritable(TEXT("bli bli"));
 				itm.cChildren		= 2;
 				itm.iImage			= 11;
 				itm.iSelectedImage  = 11;
@@ -176,7 +182,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			item3.hParent = inserted2;
 			item3.hInsertAfter = TVI_LAST  ;
 			item3.item.hItem = 0;
-			item3.item.pszText		= TEXT("Item 3");
+			item3.item.pszText		= AsWritable(TEXT("Item 3"));
 			item3.item.mask			= TVIF_TEXT;
 			item3.item.iImage		= TV_NOIMAGE;
 			item3.item.iSelectedImage = TV_NOIMAGE;
@@ -184,13 +190,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			item3.item.stateMask		= 0;
 			item3.item.lParam			= 0;
 			inserted2 = (HTREEITEM)SendMessage(hWndTL, TVM_INSERTITEM, 0, (LPARAM)&item3);
-			printf("inserted = %08lx\n", inserted2);
+			printf("inserted = %p\n", inserted2);
 
 			TVINSERTSTRUCT item4;
 			item4.hParent = inserted;
 			item4.hInsertAfter = TVI_LAST  ;
 			item4.item.hItem = 0;
-			item4.item.pszText		= TEXT("Item 4");
+			item4.item.pszText		= AsWritable(TEXT("Item 4"));
 			item4.item.mask			= TVIF_TEXT;
 			item4.item.iImage		= TV_NOIMAGE;
 			item4.item.iSelectedImage = TV_NOIMAGE;
@@ -198,7 +204,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			item4.item.stateMask		= 0;
 			item4.item.lParam			= 0;
 			inserted = (HTREEITEM)SendMessage(hWndTL, TVM_INSERTITEM, 0, (LPARAM)&item4);
-			printf("inserted = %08lx\n", inserted);
+			printf("inserted = %p\n", inserted);
 
 			SetWindowLong(hWndTL, GWL_EXSTYLE, GetWindowLong(hWndTL, GWL_EXSTYLE) | TVS_EX_ITEMLINES);
 
@@ -238,9 +244,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		break;
 		case WM_DESTROY: {
 			TCHAR sMsg[50];
-			wsprintf(sMsg, TEXT("%d items"), SendMessage(hWndTL, TVM_GETROWCOUNT, (WPARAM)NULL, (LPARAM)NULL));
+			_sntprintf_s(sMsg, sizeof(sMsg) / sizeof(sMsg[0]), _TRUNCATE, TEXT("%d items"), static_cast<int>(SendMessage(hWndTL, TVM_GETROWCOUNT, (WPARAM)NULL, (LPARAM)NULL)));
 			OutputDebugString(sMsg);
-			printf("%s", sMsg);
+			_tprintf(TEXT("%s"), sMsg);
 			PostQuitMessage(0);
 			return 0;
 		}

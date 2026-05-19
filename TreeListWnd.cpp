@@ -154,6 +154,8 @@
 #define 	TVIX_BKCOLOR		0x20						// entry has its own backround color
 #define 	TVIX_FOCUSED		0x40						// entry has the focus
 
+static TCHAR cEmptyText[] = _T("");
+
 typedef struct {
 	LPARAM		lParam;										// LPARAM argument for the item
 	LPTSTR		pText;										// pointer to the item text
@@ -1317,7 +1319,7 @@ static HIMAGELIST CreateDragImage(TreeListData *pData, unsigned uItem, unsigned 
 	DeleteDC(hDc);
 	ReleaseDC(NULL, hDcSrc);
 
-	delete pMem;
+	delete[] pMem;
 
 	return hList;
 }
@@ -1823,7 +1825,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 					cTemp[INFOTIPSIZE - 1] = 0;
 
 					UNLOCK(pData);
-					lRet = SendNotify(pData, &sNotify.hdr);
+					lRet = SendNotify(pData, &sToolNv.hdr);
 					LOCK(pData);
 
 					sNotify.itemNew.mask		= TVIF_HANDLE | TVIF_PARAM | TVIF_STATE | TVIF_SUBITEM;
@@ -1853,7 +1855,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 
 				uLen = str_len(pText) + 1;
 				if(uLen >= pData->uToolTipSize) {				// Tooltipspeicher vergrößern
-					delete pData->pToolTipText;
+					delete[] pData->pToolTipText;
 					pData->uToolTipSize = (uLen + 255)&~0xFF;
 					pData->pToolTipText = new TCHAR[pData->uToolTipSize + 4];
 				}
@@ -1917,7 +1919,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 				} else {
 					sNotify.itemNew.state		= 0;
 					sNotify.itemNew.cchTextMax	= 0;
-					sNotify.itemNew.pszText		= _T("");
+					sNotify.itemNew.pszText		= cEmptyText;
 				}
 
 				sNotify.hdr.code			= TVN_ITEMTOOLTIP;
@@ -1959,7 +1961,7 @@ static void UpdateToolTip(TreeListData *pData, unsigned uItem, unsigned uFlags) 
 
 					uLen = str_len(pText) + 1;
 					if(uLen >= pData->uToolTipSize) {			// Tooltipspeicher vergrößern
-						delete pData->pToolTipText;
+						delete[] pData->pToolTipText;
 						pData->uToolTipSize = (uLen + 255)&~0xFF;
 						pData->pToolTipText = new TCHAR[pData->uToolTipSize + 4];
 					}
@@ -2042,7 +2044,7 @@ UserTip:
 	uLen = str_len(pText) + 1;
 	if(uLen >= pData->uToolTipSize) {							// Tooltipspeicher vergrößern
 
-		delete pData->pToolTipText;
+		delete[] pData->pToolTipText;
 		pData->uToolTipSize = (uLen + 255)&~0xFF;
 		pData->pToolTipText = new TCHAR[pData->uToolTipSize + 4];
 	}
@@ -3215,7 +3217,7 @@ static int TreeListDeleteItem(TreeListData *pData, unsigned uItem, int iMode) {
 
 		if(pExtra->pText) {
 			pExtra->uTextSize = 0;
-			delete pExtra->pText;
+			delete[] pExtra->pText;
 		}
 
 		delete pExtra;
@@ -3226,7 +3228,7 @@ static int TreeListDeleteItem(TreeListData *pData, unsigned uItem, int iMode) {
 
 	if(pEntry->pText) {
 		pEntry->uTextSize = 0;
-		delete pEntry->pText;
+		delete[] pEntry->pText;
 	}
 
 	if(iMode) {												// Den Eintrag neuzeichnen
@@ -3251,7 +3253,7 @@ static int TreeListDeleteItem(TreeListData *pData, unsigned uItem, int iMode) {
 			pData->uSelectedCount--;
 		}
 
-	delete pEntry;
+	delete[] (char *)pEntry;
 
 	pData->uTreeItemsCount--;
 
@@ -4044,7 +4046,7 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 
 		pPosNew = new unsigned[uMax];
 		if(!pPosNew) {
-			delete pItems;
+			delete[] pItems;
 			return 0;
 		}
 
@@ -4054,9 +4056,9 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 
 			if(!pExNew[uPos]) {
 				for(uPos--; uPos > 0; uPos--)
-					delete pExNew[uPos];
-				delete pPosNew;
-				delete pItems;
+					delete[] pExNew[uPos];
+				delete[] pPosNew;
+				delete[] pItems;
 				return 0;
 			}
 		}
@@ -4070,14 +4072,14 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 			memcpy(pExNew[uPos], pExOld[uPos]            , sizeof(ExtraItem *) * (pData->uTreeItemsMax + 1));
 			memset(pExNew[uPos] + pData->uTreeItemsMax + 1, 0, sizeof(ExtraItem *) * (uMax - pData->uTreeItemsMax));
 			pData->pExtraItems[uPos - 1] = pExNew[uPos];
-			delete pExOld[uPos];
+			delete[] pExOld[uPos];
 		}
 
 		pData->uTreeItemsMax = uMax;
 		pData->pTreeItems	 = pItems;
 		pData->pItemPos		 = pPosNew;
-		delete pPosOld;
-		delete pOld;
+		delete[] pPosOld;
+		delete[] pOld;
 	}
 
 	//******************** Den neuen Eintrag erzeugen *****************************
@@ -4658,7 +4660,7 @@ static int TreeListSetItem(TreeListData *pData, const TV_ITEM *pItem) {
 			if(uBits & TVIF_TEXT) {								// Einen neuen Text einstellen
 				if(pItem->pszText == LPSTR_TEXTCALLBACK) {
 					if(pExtra->pText)
-						delete pExtra->pText;
+						delete[] pExtra->pText;
 					pExtra->bCallback |= TVIF_TEXT;
 					pExtra->uTextSize = 0;
 					pExtra->pText	  = 0;
@@ -4668,7 +4670,7 @@ static int TreeListSetItem(TreeListData *pData, const TV_ITEM *pItem) {
 
 					if(uLen > pExtra->uTextSize || !pExtra->pText) {
 						if(pExtra->pText)
-							delete pExtra->pText;
+							delete[] pExtra->pText;
 						pExtra->pText = new TCHAR[uLen + 1];
 					}
 
@@ -4812,7 +4814,7 @@ static int TreeListSetItem(TreeListData *pData, const TV_ITEM *pItem) {
 	if(uBits & TVIF_TEXT) {										// Einen neuen Text einstellen
 		if(pItem->pszText == LPSTR_TEXTCALLBACK) {
 			if(pEntry->pText)
-				delete pEntry->pText;
+				delete[] pEntry->pText;
 			pEntry->bCallback |= TVIF_TEXT;
 			pEntry->uTextSize = 0;
 			pEntry->pText	  = 0;
@@ -4822,7 +4824,7 @@ static int TreeListSetItem(TreeListData *pData, const TV_ITEM *pItem) {
 
 			if(uLen > pEntry->uTextSize) {
 				if(pEntry->pText)
-					delete pEntry->pText;
+					delete[] pEntry->pText;
 				pEntry->pText = new TCHAR[uLen + 1];
 			}
 
@@ -4985,7 +4987,7 @@ static unsigned TreeListGetItem(TreeListData *pData, TV_ITEM *pItem) {
 				} else
 					if(uBits & TVIF_TEXTPTR) {
 						if(!pExtra->pText) {
-							pItem->pszText    = _T("");
+							pItem->pszText    = cEmptyText;
 							pItem->cchTextMax = 0;
 						} else {
 							pItem->pszText    = pExtra->pText;
@@ -5170,7 +5172,7 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 
 				if(pExtra->pText) {
 					pExtra->uTextSize = 0;
-					delete pExtra->pText;
+					delete[] pExtra->pText;
 				}
 
 				delete pExtra;
@@ -5178,7 +5180,7 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 
 			memmove(pData->pExtraItems + iNum, pData->pExtraItems + iNum + 1, sizeof(pList) * (MAX_COLUMNS - 1 - iNum));
 			pData->pExtraItems[pData->uColumnCount] = NULL;
-			delete pList;
+			delete[] pList;
 		}
 	} else {
 		iNum = MAX_COLUMNS;
@@ -5197,11 +5199,11 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 	memmove(pData->aColumn + uCol, pData->aColumn + uCol + 1, (MAX_COLUMNS - 1 - uCol)*sizeof(ColumnData));
 
 	for(uIndex = 0; uIndex < uSub; uIndex++) {						// Zuordnungs-Array anpassen
-		bItem = pData->aColumnPos[uIndex - 1];
+		bItem = pData->aColumnPos[uIndex];
 		if(bItem < uCol)
 			continue;
 
-		bItem++;
+		bItem--;
 		pData->aColumnPos[uIndex] = bItem;
 	}
 
@@ -5209,7 +5211,7 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 		bItem = pData->aColumnPos[uIndex + 1];
 
 		if(bItem >= uCol) {
-			uCol--;
+			bItem--;
 		}
 
 		pData->aColumnPos[uIndex] = bItem;
@@ -7542,10 +7544,10 @@ static void TreeListChar(TreeListData *pData, UINT nChar, LPARAM lParam) {
 
 					if(uSub) {
 						pExtra =  pExtra = pData->pExtraItems[uSub - 1][uItem];
-						pName  = (pExtra && pExtra->pText) ? pExtra->pText : _T("");
+						pName  = (pExtra && pExtra->pText) ? pExtra->pText : cEmptyText;
 					} else {
 						pEntry =  pData->pTreeItems[uItem];
-						pName  = (pEntry && pEntry->pText) ? pEntry->pText : _T("");
+						pName  = (pEntry && pEntry->pText) ? pEntry->pText : cEmptyText;
 					}
 
 					for(uPos = 0; uPos < uKeyPos; uPos++) {		// Vergleiche die Texte
@@ -8158,7 +8160,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 			pItemNew	= new unsigned[uMax];
 			memcpy(pItemNew, pItemList, uPos * sizeof(pItemList[0]));
 			if(uPos > 128)
-				delete pItemList;
+				delete[] pItemList;
 			pItemList = pItemNew;
 		}
 
@@ -8306,7 +8308,7 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 		}
 
 	if(uMax > 128)
-		delete pItemList;
+		delete[] pItemList;
 
 	return 1;
 }
@@ -8418,7 +8420,7 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 			pItemNew	= new unsigned[uMax];
 			memcpy(pItemNew, pItemList, uPos * sizeof(pItemList[0]));
 			if(uPos > 128)
-				delete pItemList;
+				delete[] pItemList;
 			pItemList = pItemNew;
 		}
 
@@ -8561,7 +8563,7 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 		}
 
 	if(uMax > 128)
-		delete pItemList;
+		delete[] pItemList;
 
 	return 1;
 }
@@ -8662,7 +8664,7 @@ static int TreeListSortItems(TreeListData *pData, unsigned uParent, int iMode) {
 			pItemNew	= new unsigned[uMax];
 			memcpy(pItemNew, pItemList, uPos * sizeof(pItemList[0]));
 			if(uPos > 128)
-				delete pItemList;
+				delete[] pItemList;
 			pItemList = pItemNew;
 		}
 
@@ -8833,7 +8835,7 @@ static int TreeListSortItems(TreeListData *pData, unsigned uParent, int iMode) {
 		}
 
 	if(uMax > 128)
-		delete pItemList;
+		delete[] pItemList;
 	
 	return 1;
 }
@@ -9508,7 +9510,7 @@ static int TreeListStartNotifyEdit(TreeListData *pData, unsigned uItem, unsigned
 		} else {
 			sNotify.item.state		= 0;
 			sNotify.item.cchTextMax	= 0;
-			sNotify.item.pszText	= _T("");
+			sNotify.item.pszText	= cEmptyText;
 		}
 
 		sNotify.item.state		   |= pEntry->uState & TVIS_BASEFLAGS;
@@ -10027,15 +10029,15 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 			pData->pTreeItems = new BaseItem*[1];
 			if(!pData->pTreeItems) {
-				delete pData->pToolTipText;
+				delete[] pData->pToolTipText;
 				delete pData;
 				return -1;
 			}
 
 			pData->pItemPos  = new unsigned[1];
 			if(!pData->pItemPos) {
-				delete pData->pToolTipText;
-				delete pData->pTreeItems;
+				delete[] pData->pToolTipText;
+				delete[] pData->pTreeItems;
 				delete pData;
 				return -1;
 			}
@@ -10158,7 +10160,7 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			}
 
 			for(uVal = 1; uVal < pData->uColumnCount; uVal++) {
-				delete pData->pExtraItems[uVal - 1];
+				delete[] pData->pExtraItems[uVal - 1];
 				pData->pExtraItems[uVal - 1] = 0;
 			}
 
@@ -10179,9 +10181,9 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 			LOCK(pData);
 
-			delete pData->pToolTipText;
-			delete pData->pTreeItems;
-			delete pData->pItemPos;
+			delete[] pData->pToolTipText;
+			delete[] pData->pTreeItems;
+			delete[] pData->pItemPos;
 
 			UNLOCK(pData);
 
@@ -11330,7 +11332,7 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			LOCK(pData);
 #ifdef _DEBUG
 			char dbg[255];
-			sprintf(dbg, "TVM_SETIMAGELIST %d", (int)wParam);
+			sprintf_s(dbg, sizeof(dbg), "TVM_SETIMAGELIST %d", static_cast<int>(wParam));
 			OutputDebugStringA(dbg);
 #endif
 			switch((int)wParam) {
@@ -12423,7 +12425,7 @@ NextExp:
 			if(pData->hHeader) {
 				HDITEM		sItem;
 				TV_COLUMN  *pCol = (TV_COLUMN *)lParam;
-				int bWantMark;
+				int bWantMark = 0;
 				unsigned	uCol;
 				
 				uCol = U(wParam);

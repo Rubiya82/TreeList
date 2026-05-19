@@ -8,6 +8,7 @@
 #include	"StdAfx.h"
 #include	"TreeList.h"
 #include	"TreeListDlg.h"
+#include	<cstddef>
 
 #ifdef		_DEBUG
 #define new	 DEBUG_NEW
@@ -16,11 +17,14 @@ static char	 THIS_FILE[] = __FILE__;
 #endif
 
 
-TCHAR	   *pItems1[]	    = {_T("Europe"), _T("Asia"), _T("America")};
-TCHAR	   *pItems2[]		= {_T("Austria"), _T("Germany"), _T("China"), _T("Japan"), _T("Canada"), _T("Mexico")};
-TCHAR	   *pItems3[]		= {_T("Vienna"), _T("Graz"), _T("Linz"), _T("Berlin"), _T("Munich"), _T("Hamburg"), _T("Beijing"), _T("Shanghai"), _T("Hongkong"), _T("Tokyo"), _T("Osaka"), _T("Kobe"), _T("Ottawa"), _T("Toronto"), _T("Vancouver"), _T("Mexico City"), _T("Monerrey"), _T("Guadalajara")};
+LPCTSTR pItems1[]	    = {_T("Europe"), _T("Asia"), _T("America")};
+LPCTSTR pItems2[]		= {_T("Austria"), _T("Germany"), _T("China"), _T("Japan"), _T("Canada"), _T("Mexico")};
+LPCTSTR pItems3[]		= {_T("Vienna"), _T("Graz"), _T("Linz"), _T("Berlin"), _T("Munich"), _T("Hamburg"), _T("Beijing"), _T("Shanghai"), _T("Hongkong"), _T("Tokyo"), _T("Osaka"), _T("Kobe"), _T("Ottawa"), _T("Toronto"), _T("Vancouver"), _T("Mexico City"), _T("Monerrey"), _T("Guadalajara")};
 
-#define 	ENTRIES(a)	(sizeof(a)/sizeof(a[0]))
+template <typename T, std::size_t N>
+constexpr int Entries(const T (&)[N]) noexcept {
+	return static_cast<int>(N);
+}
 #define 	IDC_TREELIST	123
 #define 	USER_DATA_SIZE	256
 
@@ -264,8 +268,8 @@ BOOL CTreeListDlg::OnInitDialog() {
 	m_cTreeList.SetUserDataSize(USER_DATA_SIZE);
 
 
-	for(i = 0; i < ENTRIES(aComboIds); i++) {
-		for(j = 0; j < ENTRIES(aColors); j++) {
+	for(i = 0; i < Entries(aComboIds); i++) {
+		for(j = 0; j < Entries(aColors); j++) {
 			((CComboBox *)GetDlgItem(aComboIds[i]))->InsertString(j, _T(""));
 		}
 		((CComboBox *)GetDlgItem(aComboIds[i]))->SetCurSel(0);
@@ -291,7 +295,7 @@ BOOL CTreeListDlg::OnInitDialog() {
 		m_cTreeList.SetItem(hItem3[i], 1 + (i & 1), TVIF_TEXT, _T("Text"), 0, 0, 0, 0, 0);
 	}
 
-	for(i = 0; i < ENTRIES(aIdList); i += 3) {
+	for(i = 0; i < Entries(aIdList); i += 3) {
 		if(aIdList[i + 2] == 0) {
 			if(uStyle & aIdList[i + 1])
 				GetDlgItem(aIdList[i])->SendMessage(BM_SETCHECK, BST_CHECKED);
@@ -469,7 +473,7 @@ void CTreeListDlg::OnCheck(int iID) {
 
 
 
-	for(i = 0; i < ENTRIES(aIdList); i += 3) {
+	for(i = 0; i < Entries(aIdList); i += 3) {
 		if(aIdList[i] != iID)
 			continue;
 
@@ -631,7 +635,7 @@ void CTreeListDlg::OnCbStateChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 
 
 
-	_itot(((pNmTreeView->itemNew.state >> 12) & 0x0F) | 0x10, cState, 2);
+	_itot_s(((pNmTreeView->itemNew.state >> 12) & 0x0F) | 0x10, cState, Entries(cState), 2);
 
 	cState[0] = ' ';
 	SetDlgItemText(IDC_EDIT3, cState);
@@ -736,7 +740,7 @@ void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 
 		uColor = m_cTreeList.GetItemBkColor(m_hSelect, m_iSelCol);
 
-		for(i = ENTRIES(aColors) - 1; i > 0; i--) {
+		for(i = Entries(aColors) - 1; i > 0; i--) {
 			if(uColor == aColors[i])
 				break;
 		}
@@ -745,7 +749,7 @@ void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 
 		uColor = m_cTreeList.GetItemTextColor(m_hSelect, m_iSelCol);
 
-		for(i = ENTRIES(aColors) - 1; i > 0; i--) {
+		for(i = Entries(aColors) - 1; i > 0; i--) {
 			if(uColor == aColors[i])
 				break;
 		}
@@ -756,7 +760,7 @@ void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 		memcpy(cUserData, m_cTreeList.GetUserData(m_hSelect), USER_DATA_SIZE);
 		cUserData[sizeof(cUserData) - 1] = 0;
 
-		_itot(((sItem.state >> 12) & 0x0F) | 0x10, cState, 2);
+		_itot_s(((sItem.state >> 12) & 0x0F) | 0x10, cState, Entries(cState), 2);
 		cState[0] = ' ';
 
 		m_iCheckMode = (sItem.state >> 13) & 3;
@@ -915,7 +919,7 @@ void CTreeListDlg::OnChangeCheck() {
 	uBits = m_cTreeList.GetItemState(m_hSelect, 0xF000, m_iSelCol);
 
 
-	_itot(((uBits >> 12) & 0x0F) | 0x10, cState, 2);
+	_itot_s(((uBits >> 12) & 0x0F) | 0x10, cState, Entries(cState), 2);
 
 	cState[0] = ' ';
 	SetDlgItemText(IDC_EDIT3, cState);
@@ -937,7 +941,7 @@ void CTreeListDlg::OnUpdateState() {
 	UpdateData();
 
 	uBits = m_cTreeList.GetItemState(m_hSelect, 0xF000, m_iSelCol);
-	_itot(((uBits >> 12) & 0x0F) | 0x10, cState, 2);
+	_itot_s(((uBits >> 12) & 0x0F) | 0x10, cState, Entries(cState), 2);
 
 	cState[0] = ' ';
 	SetDlgItemText(IDC_EDIT3, cState);
@@ -975,7 +979,7 @@ void CTreeListDlg::OnCheck40() {OnUpdateAutoEdit();}
 //*****************************************************************************
 void CTreeListDlg::OnUpdateAutoEdit() {
 	int				i, iMode;
-	static LPTSTR	pTextList[] = {_T("ListVal1"), _T("ListVal2"), _T("ListVal3"), _T("ListVal4"), NULL};
+	static LPCTSTR pTextList[] = {_T("ListVal1"), _T("ListVal2"), _T("ListVal3"), _T("ListVal4"), NULL};
 
 
 
@@ -1069,7 +1073,7 @@ void CTreeListDlg::OnUpdateAutoEdit() {
 	}
 
 	if(m_iAutoEditMode != 0) {
-		for(i = 0; i < ENTRIES(aIdList); i += 3) {
+		for(i = 0; i < Entries(aIdList); i += 3) {
 			if(aIdList[i + 1] != TVS_EDITLABELS)
 				continue;
 
