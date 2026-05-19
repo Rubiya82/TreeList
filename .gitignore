@@ -20,6 +20,7 @@ bld/
 obj_test/
 PB/*.dll
 tests/*.exe
+*.lastcodeanalysissucceeded
 
 # PB files
 *.prp

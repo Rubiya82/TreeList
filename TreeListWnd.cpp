@@ -1284,7 +1284,7 @@ static HIMAGELIST CreateDragImage(TreeListData *pData, unsigned uItem, unsigned 
 
 	ExtTextOut(hDc, iAdd, iYpos, ETO_OPAQUE | ETO_CLIPPED, &sRect, pText, uTSize, NULL);
 
-	if(iImage >= 0) {
+	if(iImage >= 0 && pData->hImages) {
 		SetBkColor(hDc, GetSysColor(COLOR_WINDOW));
 		ImageList_Draw(pData->hImages, iImage, hDc, 0, 0, ILD_TRANSPARENT);
 	}
@@ -2483,8 +2483,7 @@ static int TreeListSetOrderArray(TreeListData *pData, unsigned uItems, unsigned 
 				return 0;
 			}
 		} else {
-			for(uCol = pData->uColumnCount; uCol > 0; uCol++) {		// Standartreihenfolge
-				uCol--;
+			for(uCol = 0; uCol < pData->uColumnCount; uCol++) {		// Standartreihenfolge
 				aArray[uCol] = uCol;
 			}
 		}
@@ -4250,6 +4249,7 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 			uParent			= 0;
 			pFirst			= &pData->uFirstChild;
 			pLast			= &pData->uLastChild;
+		[[fallthrough]];
 
 		case U(TVI_LAST):										// Am Ende einfügen
 			if(pLast[0]) {									// Gibt es schon Einträge
@@ -7512,7 +7512,7 @@ static void TreeListChar(TreeListData *pData, UINT nChar, LPARAM lParam) {
 
 		if(!(pData->uStyleEx & TVS_EX_NOCHARSELCET))
 			for(;;) {										// Suche Anfangsbuchstaben
-				uTick  = GetTickCount();
+				uTick  = static_cast<unsigned>(GetTickCount64());
 				uDelta = (uKeyPos > 0) ? 750 : 500;
 
 				if(uKeyPos >= 3)
@@ -10513,7 +10513,7 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 			LOCK(pData);
 
-			uTime = GetTickCount();
+			uTime = static_cast<unsigned>(GetTickCount64());
 
 			if(pData->cButtonFlag && pData->uToolTipItem) {	// Doppelklick simulieren über ToolTip
 				pData->cButtonFlag = 0;
@@ -11746,6 +11746,7 @@ static LRESULT CALLBACK TreeListProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			goto ColGet;
 		case TVM_GETTEXTCOLOR:
 			wParam = TVC_TEXT;
+		[[fallthrough]];
 		case TVM_GETBKCOLOR:
 
 ColGet:
@@ -11762,6 +11763,7 @@ ColGet:
 			goto ColSet;
 		case TVM_SETTEXTCOLOR:
 			wParam = TVC_TEXT;
+		[[fallthrough]];
 		case TVM_SETBKCOLOR:
 
 ColSet:
@@ -12606,7 +12608,7 @@ NextExp:
 
 		case TVM_GETISEARCHSTRING:									// Holt den aktuellen Suchtext
 
-			uDelta = GetTickCount() - uKeyLast;
+			uDelta = static_cast<unsigned>(GetTickCount64()) - uKeyLast;
 
 			if(!lParam) {
 				return (uDelta <= 750) ? uKeyPos : 0;

@@ -185,7 +185,7 @@ END_MESSAGE_MAP()
 //*		CDialog
 //*
 //*****************************************************************************
-CTreeListDlg::CTreeListDlg(CWnd *pParent): CDialog(CTreeListDlg::IDD, pParent) {
+CTreeListDlg::CTreeListDlg(CWnd *pParent): CDialog(CTreeListDlg::IDD, pParent), m_hSelect(NULL), m_iSelCol(0), m_hIcon(NULL), m_uSelState(0) {
 	//{{AFX_DATA_INIT(CTreeListDlg)
 	m_bFullWidth	= TRUE;
 	m_bOnlyReturn	= FALSE;
@@ -315,8 +315,7 @@ BOOL CTreeListDlg::OnInitDialog() {
 	pSysMenu  = GetSystemMenu(FALSE);
 	if(pSysMenu != NULL) {
 		CString strAboutMenu;
-		strAboutMenu.LoadString(IDS_ABOUTBOX);
-		if(!strAboutMenu.IsEmpty()) {
+		if(strAboutMenu.LoadString(IDS_ABOUTBOX) && !strAboutMenu.IsEmpty()) {
 			pSysMenu->AppendMenu(MF_SEPARATOR);
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
@@ -672,7 +671,7 @@ void CTreeListDlg::OnTooltipNotify(NMHDR *pNmHdr, LRESULT *pResult) {
 void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 	NM_TREEVIEW *pNmTreeView = (NM_TREEVIEW *)pNmHdr;
 	TV_ITEM		 sItem;
-	TCHAR		 cUserData[256];
+	TCHAR		 cUserData[USER_DATA_SIZE / sizeof(TCHAR)] = _T("");
 	TCHAR		 cState[256] = _T("");
 	TCHAR		 cText[256] = _T("");
 	COLORREF	 uColor;
@@ -684,10 +683,10 @@ void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 
 
 	if(pNmTreeView->itemOld.hItem) {					// Update User-Data
-		i = GetDlgItemText(IDC_EDIT4, cUserData, sizeof(cUserData)) + 1;
+		i = (GetDlgItemText(IDC_EDIT4, cUserData, Entries(cUserData)) + 1) * sizeof(TCHAR);
 		if(i > USER_DATA_SIZE)
 			i = USER_DATA_SIZE;
-		cUserData[sizeof(cUserData) / sizeof(cUserData[0]) - 1] = 0;
+		cUserData[Entries(cUserData) - 1] = 0;
 		pData = m_cTreeList.GetUserData(m_hSelect);
 		if(pData)
 			memcpy(pData, cUserData, i);
@@ -731,7 +730,7 @@ void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 		sItem.mask		 = TVIF_TEXT | TVIF_HANDLE | TVIF_SUBITEM | TVIF_STATE;
 		sItem.stateMask	 = TVIS_STATEIMAGEMASK;
 		sItem.pszText	 = cText;
-		sItem.cchTextMax = sizeof(cText);
+		sItem.cchTextMax = Entries(cText);
 		sItem.hItem		 = m_hSelect;
 		sItem.cChildren	 = m_iSelCol;
 
@@ -758,7 +757,7 @@ void CTreeListDlg::OnSelChanged(NMHDR *pNmHdr, LRESULT *pResult) {
 
 
 		memcpy(cUserData, m_cTreeList.GetUserData(m_hSelect), USER_DATA_SIZE);
-		cUserData[sizeof(cUserData) - 1] = 0;
+		cUserData[Entries(cUserData) - 1] = 0;
 
 		_itot_s(((sItem.state >> 12) & 0x0F) | 0x10, cState, Entries(cState), 2);
 		cState[0] = ' ';
