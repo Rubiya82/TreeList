@@ -21,6 +21,26 @@ class CDialog;
 #define 	ID_TREELISTCTRL_DEF		0x9719
 
 
+inline UINT TreeListCtrlAutoEditColumn(int column) noexcept {
+	return (static_cast<UINT>(column) & 0x3FU) << 11U;
+}
+
+inline UINT TreeListCtrlAutoEditCount(int count) noexcept {
+	return (static_cast<UINT>(count) & 0x7FU) << 25U;
+}
+
+inline UINT TreeListCtrlAutoEditChar(TCHAR value) noexcept {
+	return (static_cast<UINT>(value) & 0xFFU) << 17U;
+}
+
+inline WPARAM TreeListCtrlAutoEditWParam(int column, UINT flags) noexcept {
+	constexpr UINT columnMask = 0x3FU << 11U;
+	return static_cast<WPARAM>((flags & ~columnMask) | TreeListCtrlAutoEditColumn(column));
+}
+
+inline INT TreeListCtrlSetColumnAutoEdit(HWND hWnd, int column, UINT flags, LPARAM value) noexcept {
+	return static_cast<INT>(::SendMessage(hWnd, TVM_COLUMNAUTOEDIT, TreeListCtrlAutoEditWParam(column, flags), value));
+}
 //*****************************************************************************
 //*
 //*		CTreeListCtrl
@@ -260,11 +280,11 @@ inline	CComboBox	*CTreeListCtrl::EditLabelCb(HTREEITEM hItem,int nCol,int iF,int
 inline	CHeaderCtrl *CTreeListCtrl::GetHeaderCtrl  () const										{ ASSERT(::IsWindow(m_hWnd)); return (CHeaderCtrl*)CHeaderCtrl::FromHandle(TreeList_GetHeader(m_hWnd)); }
 inline	CComboBox   *CTreeListCtrl::GetComboControl() const										{ ASSERT(::IsWindow(m_hWnd)); return (CComboBox  *)CWnd       ::FromHandle((HWND)::SendMessage(m_hWnd,TVM_GETEDITCONTROL,0,0));}
 inline	CEdit       *CTreeListCtrl::GetEditControl () const										{ ASSERT(::IsWindow(m_hWnd)); return (CEdit      *)CWnd       ::FromHandle((HWND)::SendMessage(m_hWnd,TVM_GETEDITCONTROL,0,0));}
-inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m							  )	{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetColumnAutoEdit(m_hWnd,n, m                                          ,NULL ); }			
-inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,        LPTSTR  *pList,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetColumnAutoEdit(m_hWnd,n,(m|TVAE_COUNT(x)             )| TVAE_PTRLIST,pList); }			
-inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,        LPCTSTR *pList,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetColumnAutoEdit(m_hWnd,n,(m|TVAE_COUNT(x)             )| TVAE_PTRLIST,pList); }			
-inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,        LPCTSTR  pText,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetColumnAutoEdit(m_hWnd,n,(m|TVAE_COUNT(x)             )&~TVAE_PTRLIST,pText); }			
-inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,TCHAR c,LPCTSTR  pText,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetColumnAutoEdit(m_hWnd,n,(m|TVAE_COUNT(x)|TVAE_CHAR(c))&~TVAE_PTRLIST,pText); }			
+inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m							  )	{ ASSERT(::IsWindow(m_hWnd)); return TreeListCtrlSetColumnAutoEdit(m_hWnd, n, static_cast<UINT>(m), 0); }			
+inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,        LPTSTR  *pList,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeListCtrlSetColumnAutoEdit(m_hWnd, n, static_cast<UINT>(m) | TreeListCtrlAutoEditCount(x) | TVAE_PTRLIST, reinterpret_cast<LPARAM>(pList)); }			
+inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,        LPCTSTR *pList,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeListCtrlSetColumnAutoEdit(m_hWnd, n, static_cast<UINT>(m) | TreeListCtrlAutoEditCount(x) | TVAE_PTRLIST, reinterpret_cast<LPARAM>(pList)); }			
+inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,        LPCTSTR  pText,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeListCtrlSetColumnAutoEdit(m_hWnd, n, (static_cast<UINT>(m) | TreeListCtrlAutoEditCount(x)) & ~static_cast<UINT>(TVAE_PTRLIST), reinterpret_cast<LPARAM>(pText)); }			
+inline	INT			 CTreeListCtrl::SetColumnAutoEdit(int n,int m,TCHAR c,LPCTSTR  pText,int x)	{ ASSERT(::IsWindow(m_hWnd)); return TreeListCtrlSetColumnAutoEdit(m_hWnd, n, (static_cast<UINT>(m) | TreeListCtrlAutoEditCount(x) | TreeListCtrlAutoEditChar(c)) & ~static_cast<UINT>(TVAE_PTRLIST), reinterpret_cast<LPARAM>(pText)); }			
 inline	INT			 CTreeListCtrl::SetColumnAutoIcon(int n,int iIcon                         )	{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetColumnAutoIcon(m_hWnd,n,iIcon); }			
 inline	INT			 CTreeListCtrl::GetOption(int iOption)										{ ASSERT(::IsWindow(m_hWnd)); return TreeList_GetOption(m_hWnd,iOption); }			
 inline	INT			 CTreeListCtrl::SetOption(int iOption,int  iValue)							{ ASSERT(::IsWindow(m_hWnd)); return TreeList_SetOption(m_hWnd,iOption,iValue); }			

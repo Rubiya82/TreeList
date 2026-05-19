@@ -37,6 +37,7 @@
 #include	<string.h>
 #include	<malloc.h>
 #include	<tchar.h>
+#include	<vector>
 
 
 #include	"TreeListWnd.h"
@@ -2279,12 +2280,16 @@ static void UpdateItems(TreeListData *pData, unsigned uItem) {
 		}
 
 		pEntry			 = pItems[uItem];
+		if(!pEntry)
+			return;
 		pEntry->uShowPos = 1;
 		pLines[0]		 = uItem;
 		uPos			 = 1;
 		uStart			 = 0;
 	} else {													// Bei einem Eintrag beginnen
 		pEntry			 = pItems[uItem];
+		if(!pEntry)
+			return;
 		uPos			 = pEntry->uShowPos;
 		if(uPos)
 			uStart	 = uPos - 1;
@@ -4230,10 +4235,13 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 					goto DoInsert;
 				}
 			}
+		[[fallthrough]];
 
 		case U(TVI_FIRST):										// Am Anfang einfügen
 			if(pFirst[0]) {									// Gibt es schon Einträge
 				pEntry = pItems[pFirst[0]];
+				if(!pEntry)
+					return 0;
 				pEntry->uPrevItem = uPos;
 			} else {
 				pFirst[0] = uPos;
@@ -4255,6 +4263,8 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 		case U(TVI_LAST):										// Am Ende einfügen
 			if(pLast[0]) {									// Gibt es schon Einträge
 				pEntry = pItems[pLast[0]];
+				if(!pEntry)
+					return 0;
 				pEntry->uNextItem = uPos;
 			} else {
 				pFirst[0] = uPos;
@@ -4470,6 +4480,8 @@ static unsigned TreeListInsertItem(TreeListData *pData, TV_INSERTSTRUCT *pInsert
 					}
 				}
 			}
+		[[fallthrough]];
+
 
 		default
 				:												// Hinter einen Eintrag einfügen
@@ -4494,6 +4506,8 @@ DoInsert:
 
 					if(uAfter == 0) {							// In die erste Reihe einfügen
 						pEntry = pItems[uItem];
+						if(!pEntry)
+							return 0;
 						pEntry->uPrevItem = uPos;
 						pNew  ->uNextItem = uItem;
 						pFirst[0]		  = uPos;
@@ -4519,6 +4533,8 @@ DoInsert:
 
 					if(uBefore) {								// Vorherigen Eintrag anpassen
 						pEntry = pItems[uBefore];
+						if(!pEntry)
+							return 0;
 						pEntry->uNextItem = uPos;
 					} else {									// Am Anfang einfügen
 						pFirst[0] = uPos;
@@ -4526,6 +4542,8 @@ DoInsert:
 
 					if(uItem) {								// Nächsten Eintrag anpassen
 						pEntry = pItems[uItem];
+						if(!pEntry)
+							return 0;
 						pEntry->uPrevItem = uPos;
 					} else {									// Am Ende anhängen
 						pLast[0] = uPos;
@@ -4547,6 +4565,9 @@ DoInsert:
 				uBefore = pLast[0];
 				pEntry  = pItems[uBefore];
 			}
+
+			if(uBefore && !pEntry)
+				return 0;
 
 			pNew->uNextItem = uItem;
 			pNew->uPrevItem = uBefore;
@@ -5111,7 +5132,7 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 	int			iAll;
 	int			iFix;
 
-	if(uCol >= pData->uColumnCount)
+	if(uCol >= pData->uColumnCount || pData->uColumnCount > MAX_COLUMNS)
 		return 0;
 
 	if(uCol && uCol == pData->uSelectedSub) {					// Ist die Auswahl in der Spalte
@@ -5196,6 +5217,8 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 	}
 
 	uSub = pData->aColumnPos[uCol];
+	if(uSub > MAX_COLUMNS)
+		return 0;
 
 	memmove(pData->aColumn + uCol, pData->aColumn + uCol + 1, (MAX_COLUMNS - 1 - uCol)*sizeof(ColumnData));
 
@@ -5221,8 +5244,12 @@ static int TreeListDeleteColumn(TreeListData *pData, unsigned uCol) {
 	for(uIndex = pData->uColumnCount; uIndex > 0;) {
 		uIndex--;
 		bByte = pData->aColumn[uIndex].bIndex;
+		if(bByte >= MAX_COLUMNS)
+			continue;
 
 		if(bByte >= uSub) {
+			if(bByte == 0)
+				continue;
 			bByte--;
 			pData->aColumn[uIndex].bIndex = bByte;
 		}
@@ -5981,7 +6008,7 @@ static LRESULT TreeListGetItemColor(TreeListData *pData, unsigned uItem, unsigne
 		return TV_NOCOLOR;
 
 	if(uSub) {												// Extra-Eintrag abfragen
-		if(uSub >= pData->uColumnCount)
+		if(uSub >= pData->uColumnCount || uSub >= MAX_COLUMNS)
 			return TV_NOCOLOR;
 
 		pExtra = pData->pExtraItems[uSub - 1][uItem];
@@ -6039,7 +6066,7 @@ static COLORREF TreeListSetItemColor(TreeListData *pData, unsigned uItem, unsign
 	}
 
 	if(uSub) {												// Extra-Eintrag verändern
-		if(uSub >= pData->uColumnCount)
+		if(uSub >= pData->uColumnCount || uSub >= MAX_COLUMNS)
 			return TV_NOCOLOR;
 
 		pExtra = pData->pExtraItems[uSub - 1][uItem];
@@ -6052,6 +6079,8 @@ static COLORREF TreeListSetItemColor(TreeListData *pData, unsigned uItem, unsign
 				return TV_NOCOLOR;
 
 			pExtra = pData->pExtraItems[uSub - 1][uItem];
+			if(!pExtra)
+				return TV_NOCOLOR;
 		}
 
 		if(iMode) {											// Textfarbe
@@ -6782,6 +6811,8 @@ static void TreeListChangeCheckbox(TreeListData *pData, UINT uItem, int iPosX = 
 	sNotify.itemOld.hItem = 0;
 
 	pEntry = pData->pTreeItems[uItem];
+	if(!pEntry)
+		return;
 	uBits  = pEntry->uState & TVIS_STATEIMAGEMASK;
 
 	if(pData->uStyleEx & TVS_EX_SINGLECHECKBOX) {			// Einzelauswahl
@@ -8167,6 +8198,11 @@ static int TreeListSortItemsEx(TreeListData *pData, TV_SORTEX *pSortData, int iM
 
 		pItemList[uPos] = uItem;
 		pNext			= pList[uItem];
+		if(!pNext) {
+			if(pItemList != uEnties)
+				delete[] pItemList;
+			return 0;
+		}
 		uItem			= pNext->uNextItem;
 		uPos++;
 	} while(uItem);
@@ -8427,6 +8463,11 @@ static int TreeListSortItemsCb(TreeListData *pData, TV_SORTCB *pSortData, int iM
 
 		pItemList[uPos] = uItem;
 		pNext			= pList[uItem];
+		if(!pNext) {
+			if(pItemList != uEnties)
+				delete[] pItemList;
+			return 0;
+		}
 		uItem			= pNext->uNextItem;
 		uPos++;
 	} while(uItem);
@@ -8671,6 +8712,11 @@ static int TreeListSortItems(TreeListData *pData, unsigned uParent, int iMode) {
 
 		pItemList[uPos] = uItem;
 		pNext			= pList[uItem];
+		if(!pNext) {
+			if(pItemList != uEnties)
+				delete[] pItemList;
+			return 0;
+		}
 		uItem			= pNext->uNextItem;
 		uPos++;
 	} while(uItem);
@@ -8883,7 +8929,7 @@ static int TreeListEndLabelEdit(TreeListData *pData, int iMode) {
 	pData->uEditSub  = 0;
 	pData->cEditCb	 = 0;
 
-	if(uItem > pData->uTreeItemsMax || uSub >= pData->uColumnCount) {
+	if(uItem > pData->uTreeItemsMax || uSub >= pData->uColumnCount || uSub >= MAX_COLUMNS) {
 		return 0;
 	}
 
@@ -9105,7 +9151,7 @@ static HWND TreeListEditLabel(TreeListData *pData, unsigned uItem, unsigned uSub
 	uSel    = (uSub >> 8) & 0x0FFFFF;
 	uSub   &=  0xFF;
 
-	if(uSub >= pData->uColumnCount)
+	if(uSub >= pData->uColumnCount || uSub >= MAX_COLUMNS)
 		return NULL;
 	if(uItem > pData->uTreeItemsMax)
 		return NULL;
@@ -13116,8 +13162,10 @@ NoRootLines:
 
 		if(uBits & (TVIS_SELECTED | TVIS_DROPHILITED | TVIS_UNDERLINE | TVIS_TRACKED | TVIS_TEXTCOLOR | TVIS_FOCUSED)) {
 			// Das Feld speziel zeichnen
-			TCHAR	*pPtr = (TCHAR *)alloca((uTextSize + 4) * sizeof(TCHAR));
-			INT		*pPos = (INT *)alloca((uTextSize + 4) * sizeof(INT));
+			std::vector<TCHAR> textBuffer(uTextSize + 4);
+			std::vector<INT> posBuffer(uTextSize + 4);
+			TCHAR	*pPtr = textBuffer.data();
+			INT		*pPos = posBuffer.data();
 
 			ExtTextOut(hDc, 0, 0, ETO_OPAQUE | ETO_CLIPPED, &sArea, NULL, 0, NULL);
 
@@ -13241,7 +13289,8 @@ NoRootLines:
 
 			// Ist der Text größer als die Spalte
 			if(sArea.left + pEntry->iTextPixels >= (int)(sArea.right - pData->uScrollX)) {
-				INT	*pPos = (INT *)alloca(uTextSize * sizeof(INT));
+				std::vector<INT> posBuffer(uTextSize ? uTextSize : 1);
+				INT	*pPos = posBuffer.data();
 
 				iSize  = sArea.right - sArea.left - pData->uScrollX;
 				iSize -= (uBits & TVIS_BOLD) ? pData->uTrippleB : pData->uTrippleN;
@@ -13443,8 +13492,10 @@ ExtraDraw:
 
 				if(uBits & (TVIS_SELECTED | TVIS_DROPHILITED | TVIS_UNDERLINE | TVIS_TRACKED | TVIS_TEXTCOLOR | TVIS_FOCUSED)) {
 					// Text ausgeben in spezilem Format
-					TCHAR	*pPtr = (TCHAR *)alloca((uTextSize + 4) * sizeof(TCHAR));
-					INT		*pPos = (INT *)alloca((uTextSize + 4) * sizeof(INT));
+					std::vector<TCHAR> textBuffer(uTextSize + 4);
+					std::vector<INT> posBuffer(uTextSize + 4);
+					TCHAR	*pPtr = textBuffer.data();
+					INT		*pPos = posBuffer.data();
 
 					ExtTextOut(hDc, 0, 0, ETO_OPAQUE | ETO_CLIPPED, &sArea, NULL, 0, NULL);
 
@@ -13587,7 +13638,8 @@ ExtraDraw:
 					}
 					// Ist der Text größer als die Spalte
 					if(sArea.left + pExtra->iTextPixels >= sArea.right) {
-						INT	*pPos = (INT *)alloca(uTextSize * sizeof(INT));
+						std::vector<INT> posBuffer(uTextSize ? uTextSize : 1);
+						INT	*pPos = posBuffer.data();
 
 						iSize  = sArea.right - sArea.left;
 						iSize -= (uBits & TVIS_BOLD) ? pData->uTrippleB : pData->uTrippleN;

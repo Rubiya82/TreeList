@@ -189,9 +189,9 @@ typedef		TVSORTEX				TV_SORTEX;
 #define 	TVAE_STATEENABLE		0x0020				// edition can be (un)locked with the TVIS_DISABLEBIT flag
 #define 	TVAE_ICONCLICK			0x0040				// edition starts by clicking on the icon
 #define 	TVAE_DROPDOWN			0x0080				// open the DropDownList when edition starts
-#define 	TVAE_COL(c)				(((c)&0x3F)<<11)	// column for automatic edit
-#define 	TVAE_CHAR(c)			(((c)&0xFF)<<17)	// delimiter for the data list
-#define 	TVAE_COUNT(c)			(((c)&0x7F)<<25)	// number of entries in the data list (0=auto)
+#define 	TVAE_COL(c)				((UINT)(((UINT)(c) & 0x3FU) << 11U))	// column for automatic edit
+#define 	TVAE_CHAR(c)			((UINT)(((UINT)(c) & 0xFFU) << 17U))	// delimiter for the data list
+#define 	TVAE_COUNT(c)			((UINT)(((UINT)(c) & 0x7FU) << 25U))	// number of entries in the data list (0=auto)
 #define 	TVAE_MODEMASK			(7<<TVAE_MODEPOS)	// Mask for mode bits
 #define 	TVAE_MODEPOS			0x0008				// Mask for mode bits
 #define 	TVIS_DISABLEBIT			0x8000				// flag for locking auto edit
