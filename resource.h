@@ -10,6 +10,9 @@
 #define IDR_MAINFRAME                   128
 #define IDB_FLAGS                       129
 #define IDB_CHECKS                      130
+#ifndef TVC_CLASSNAME
+#define TVC_CLASSNAME                   "TreeList"
+#endif
 #define IDC_FRAME                       1000
 #define IDC_CHECK1                      1001
 #define IDC_CHECK2                      1002
