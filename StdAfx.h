@@ -16,6 +16,12 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif
+#ifndef		WINVER
+#define		WINVER												0x0601
+#endif
+#ifndef		_WIN32_WINNT
+#define		_WIN32_WINNT									WINVER
+#endif
 #define		VC_EXTRALEAN										// Selten verwendete Teile der Windows-Header nicht einbinden
 
 #include	<afxwin.h>											// MFC-Kern- und -Standardkomponenten

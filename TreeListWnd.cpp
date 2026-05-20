@@ -30,6 +30,12 @@
 #define    _UNICODE
 #endif
 #endif
+#ifndef		WINVER
+#define		WINVER												0x0601
+#endif
+#ifndef		_WIN32_WINNT
+#define		_WIN32_WINNT									WINVER
+#endif
 
 #include	<stdio.h>
 

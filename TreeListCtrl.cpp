@@ -10,6 +10,12 @@
 //
 //	This code creates a Tree-List-Control for MFC
 //
+#ifndef		WINVER
+#define		WINVER												0x0601
+#endif
+#ifndef		_WIN32_WINNT
+#define		_WIN32_WINNT									WINVER
+#endif
 #include	<Afx.h>
 #include	<tchar.h>
 #include	"TreeListCtrl.h"
